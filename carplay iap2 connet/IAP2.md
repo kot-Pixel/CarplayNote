@@ -8,7 +8,7 @@
 
 `IAP2`心跳握手包主要用来判断附件是否支持`IAP2`协议。当设备连接上之后，附件应通过以`1Hz`（每秒一次）发送以下字节序列来确认是否存在支持`iAP2`的设备，直到从该设备收到响应： `0xFF 0x55 0x02 0x00 0xEE 0x10`。如果设备支持`iAP2`，则附件将返回到相同的字节序列。
 
-<img src="C:\Users\Admin\Desktop\CarPlaySession_CP\IAP2FF55.jpg" style="zoom:80%;" />
+<img src="IAP2FF55.jpg" style="zoom:80%;" />
 
 上述就是表示`IAP2`的心跳包，用来判断设备是否支持`IAP2`协议，如果支持的话，也会回复`0xFF 0x55 0x02 0x00 0xEE 0x10`表示支持IAP2。
 
@@ -19,7 +19,6 @@
 
 1. 蓝牙
 2. `Usb Device/Host Mode`
-3. 其他传输方式
 
 下面分析过程传输方式均基于蓝牙
 
@@ -35,7 +34,7 @@
 
 下面是链路包的包结构：
 
-![IAP2包头结构](C:\Users\Admin\Desktop\CarPlaySession_CP\IAP2 Link Header.png)
+![IAP2包头结构](IAP2 Link Header.png)
 
 - `Start of Packet MSB`
 - `Start of Packet LSB`
@@ -47,7 +46,7 @@
 
 包`Header`的第三、四字节代表了包的长度，其中`MSB`表示大端，`LSB`表示小端。`2个字节16比特`，最大可以表示`0 - 65535`的长度。换句话说， `IAP2`的数据包最大的长度为`65535`。
 
-<img src="C:\Users\Admin\Desktop\CarPlaySession_CP\IAP2 Packet Length.png" alt="IAP2Length" style="zoom:80%;" />
+<img src="IAP2_Packet_Length.png" alt="IAP2Length" style="zoom:80%;" />
 
 从上述的蓝牙`RfComm`发送的报文中可以看到`0xFF 0x5A`之后字节是`0x00 0x17`，表明包的长度是`23`字节。
 
@@ -75,7 +74,7 @@
 | 4    | `RST`        |
 | 3    | `SLP`        |
 
-<img src="C:\Users\Admin\Desktop\CarPlaySession_CP\IAP2 Control Bit.jpg" style="zoom:80%;" />
+<img src="IAP2 Control Bit.jpg" style="zoom:80%;" />
 
 可以看到：`Control Bit`的值为`0x80`，转换成二进制是`1000 0000`，确定第7位是为1。故可以确定此报文是`SYN`，目的是用来同步的链路一些参数。
 
@@ -85,7 +84,7 @@
 
 一般`IAP2`链路的创建都是从附件发送控制字节为 `SYN` 为链路建立的开始，此时包序列号便是随机的。并且当每次包负载中含有会话的数据的时候，那么`IAP2`包的包序列号会在上一次接受到`ACK`字节位的基础增加`1`，否则会保持包序列号。
 
-<img src="C:\Users\Admin\Desktop\CarPlaySession_CP\IAP2 Packet Sequence.jpg" style="zoom:80%;" />
+<img src="IAP2 Packet Sequence.jpg" style="zoom:80%;" />
 
 可以看到，发送`SYN`时，包序列号是随机成 `fc`，表示此包的包序列号是`252`。关于包序列号是如何递增的，可以查看 `IAP2` 包解析事件。
 
@@ -97,7 +96,7 @@
 
 如果设置了`ACK`，则表示最后接受到的一个数据包报文是此字节代表的序列号。
 
-<img src="C:\Users\Admin\Desktop\CarPlaySession_CP\IAP2_Packet_ACK.jpg" style="zoom:80%;" />
+<img src="IAP2_Packet_ACK.jpg" style="zoom:80%;" />
 
 可以看到上面`IAP2`链路报文控制位是`C0`，其中第`6、7`都是`1`，表明数据包报文的类型是`SYN+ACK`。表示对上面SYN的回复。其中`9A`是此包的序列号，`SYN+ACK`的序列包和`SYN`类型包的序列号相同，一开始都是随机出来的。这里随机成`9a`，`ACK`字节位被设置为`fc`， 表示最后一个接收到数据包的序列号是`fc`，表示对序列号为`fc`的回复。
 
@@ -105,7 +104,7 @@
 
 会话标识符字节，表示此`IAP2`包是否是否是一个控制会话包。只有在控制字节中的`ACK`位并且存在`iAP2`会话有效负载时，会话标识符才有意义。如果满足这两个条件，则会话标识符将是一个非零号，用来指定`iAP2`连接中的特定会话。否则，会话标识符应设置为0。
 
-<img src="C:\Users\Admin\Desktop\CarPlaySession_CP\IAP2_Session_Identifier.jpg" style="zoom:80%;" />
+<img src="IAP2_Session_Identifier.jpg" style="zoom:80%;" />
 
 `SYN`和`SYN+ACK`类型数据包会话标识字节都是设置位`0x00`，表示这两个`IAP2`包都是非会话包。后续`Session Identifier`为`2`可以判断为会话包，故可以通过此字段快速判断是否是会话包还是链路包。
 
@@ -113,7 +112,7 @@
 
 最后一个字节是头部的校验位，用于验证`IAP2 Header`的报文是否是正确的。计算的方式是`(0x100  - 前八个字节求和之后)取出低位字节`，和此字节数据进行对比，如果对比不上，此`IAP2`报文会被丢弃。
 
-<img src="C:\Users\Admin\Desktop\CarPlaySession_CP\IAP2_Header_checksum.jpg" style="zoom:80%;" />
+<img src="IAP2_Header_checksum.jpg" style="zoom:80%;" />
 
 `0xFF + 0x5A + 0x00 + 0x17 + 0x0C + 0x9A + 0xFC + 0x00 = 0x3C6`
 
@@ -141,7 +140,7 @@
 
 `Session` 携带数据也是按照一些固定的格式来组织的：
 
-![](C:\Users\Admin\Desktop\CarPlaySession_CP\SessionMessageConstruture.png)
+![](SessionMessageConstruture.png)
 
 - `Start Of Message MSB`
 
@@ -171,7 +170,7 @@
 
 ### `0x1d0x00` 配件识别
 
-<img src="C:\Users\Admin\Desktop\CarPlaySession_CP\0x1d00Session.jpg" style="zoom:80%;" />
+<img src="0x1d00Session.jpg" style="zoom:80%;" />
 
 上述的`IAP2`报文`Message`字段为`0x40 0x40 0x00 0x06 0x1d 0x00`。其中`Message id`的两个字节是`0x1d 0x00`，此 id 表示`开始识别` `StartIdentification`。并且此`Id`是不存在`Parameter`的，最后`0x5d`并不是`Message`的字节。
 
@@ -179,7 +178,7 @@
 
 `IAP2`报文中`Header`中定义了包序列号是`9b`。
 
-![](C:\Users\Admin\Desktop\CarPlaySession_CP\IAP20x1d00_ack.jpg)
+![](IAP20x1d00_ack.jpg)
 
 上面红色箭头就是表示`0x1d0x00`，可以看到附件回复了对于 `0x1d0x00` 的回复。此`IAP2`包很简单，仅仅是对包序列号`9b`的确认`ACK`。
 
@@ -187,7 +186,7 @@
 
 在经过`0x1d0x00`附件和设备的确定之后，就会发送`0x1d0x01`附件识别信息给Apple设备。下图中可以看到Message的长度是`0x010x9e`,转换成的十进制即为414字节，并且包序列号是`fd`。
 
-<img src="C:\Users\Admin\Desktop\CarPlaySession_CP\IAP0x01dx01.jpg" style="zoom:80%;" />
+<img src="IAP0x01dx01.jpg" style="zoom:80%;" />
 
 `MessageId` 为 `0x1d0x01 `的信息是携带参数的，并且携带的参数相对比较多，携带的参数如下表：
 
@@ -219,7 +218,7 @@
 
 如何将`Paramter`携带的信息解析成有效的信息，这个在`Parameter的组织方式` 中会详细展开。目前仅需要了解到使用`0x1d01`将附件标志信息发送`Apple`设备。
 
-<img src="C:\Users\Admin\Desktop\CarPlaySession_CP\0x1d0x02Accept.jpg" style="zoom:67%;" />
+<img src="0x1d0x02Accept.jpg" style="zoom:67%;" />
 
 `Ack`包对`0x1d0x01`回复之后就可以进入到下一流程中，表示接受到`0x1d01`的设备标志信息。
 
@@ -229,7 +228,7 @@
 
 `0x1d0x02`不存在`Parameter`的，仅仅去通知附件接受刚刚发送标识信息。
 
-![](C:\Users\Admin\Desktop\CarPlaySession_CP\IAP20x1d02_ack.jpg)
+![](IAP20x1d02_ack.jpg)
 
 下面`IAP2`对上面`0x1d0x02`回复`ack`之后，此阶段正式结束。
 
@@ -239,13 +238,13 @@
 
 此`IAP2`会话是由Apple设备向附件请求`x509`证书的会话，此`MessageId`对应的是没有`Parameter`的，序列号为`0x9d`。
 
-![](C:\Users\Admin\Desktop\CarPlaySession_CP\Snipaste_IAP2_AA00_ack.png)
+![](Snipaste_IAP2_AA00_ack.png)
 
 ### `0xAA06` 附件认证序列号
 
 认证过程使用`x.509`证书进行认证，需要知道`x.509`证书的序列号。附件会将`0xAA06`将`x.509`证书的序列号发送给苹果设备。`Message Id AA06`存在参数，并且参数的类型是`blob`，内容就是`x.509`证书序列号二进制数据。
 
-![](C:\Users\Admin\Desktop\CarPlaySession_CP\Snipaste_IAP2_AA06_ack.png)
+![](Snipaste_IAP2_AA06_ack.png)
 
 设备回复`AA06`的`ack`之后，设备会重新发送一次`AA00`来请求`x.509`的认证证书。附件第二次接受到`AA00` 请求之后，下一步会走`AA01`来传输`x.509`认证证书。
 
@@ -253,11 +252,11 @@
 
 `IAP2`会话使用`MessageId 0xAA01`来传输附件的`x.509`的认证证书。`AA01` 负载就对应了附件的 `x.509` 证书，使用 `blob`的方式来进行传输。
 
-<img src="C:\Users\Admin\Desktop\CarPlaySession_CP\IAP2AA01.jpg" style="zoom:80%;" />
+<img src="IAP2AA01.jpg" style="zoom:80%;" />
 
 上述`IAP2`的包序列号是的`ff`，设备发送`ack`字节应该设置为`ff`，抓出来`rfcomm`包是符合的并且下一个包序列号重新会包装为0。
 
-<img src="C:\Users\Admin\Desktop\CarPlaySession_CP\0xAA01_ack.jpg" style="zoom:67%;" />
+<img src="0xAA01_ack.jpg" style="zoom:67%;" />
 
 经过`AA01、AA06`两个会话包之后，苹果设备中获取到附件的`x.509`的证书，下一步会去请求加密字符串来验证`x.509`证书。
 
@@ -265,7 +264,7 @@
 
 苹果设备会使用`MessageId AA02` 向附件传输一个需要加密的字符串。`AA02`的参数类型就是字符串的二进制数据，类型同样也是`blob`。
 
-![](C:\Users\Admin\Desktop\CarPlaySession_CP\Snipaste_IAP2_AA02_ack.png)
+![](Snipaste_IAP2_AA02_ack.png)
 
 附件接受到`AA02`之后，使用`x.509`加密之后。下一步会使用`AA03`将加密之后的字符串传递给设备。
 
@@ -273,7 +272,7 @@
 
 当接受到`AA02`的字符串之后，配件会使用证书进行加密。并将加密之后的字符串走`MessageId 0xAA03` 传递给设备。
 
-![](C:\Users\Admin\Desktop\CarPlaySession_CP\Snipaste_IAP2_AA03_ack.png)
+![](Snipaste_IAP2_AA03_ack.png)
 
 这里可以看到，此`IAP2`包的包序列号从`ff`最大值重新被包装成`00`了。
 
@@ -283,30 +282,32 @@
 
 此`MessageId`为`0xAA05`的时候表示认证成功，`0xAA05`是不携带`Parameter`的仅仅去通知附件认证成功。
 
-<img src="C:\Users\Admin\Desktop\CarPlaySession_CP\0xAA05.jpg" style="zoom:80%;" />
+<img src="0xAA05.jpg" style="zoom:80%;" />
 
 当前的包序列号是`0xa0`，`ack`期待的字段即为`0xa0`。
 
-<img src="C:\Users\Admin\Desktop\CarPlaySession_CP\0xAA05_ack.jpg" style="zoom: 80%;" />
+<img src="0xAA05_ack.jpg" style="zoom: 80%;" />
 
 到此为止，整个认证会话的流程结束了。
+
+
 
 ### `0x4E09` 更新设备信息
 
 认证成功之后，苹果设备会发送 `MessageId` 为 `0x4E0x09`来更新设备名称，下面的`Rfcomm`报文将设备名称更新为`iPhone`。
 
-![](C:\Users\Admin\Desktop\CarPlaySession_CP\IAP2_4e09.jpg)
+![](IAP2_4e09.jpg)
 
 下个阶段会进入到`Carplay`特有的会话`Session`中，主要是传输热点的一些配置信息。
 
 ### `0x4300 Carplay Availabily` 可用性
 
- `MessageId`等于`0x4300`来指示`Carplay`可用性。在接受`0x4e09`更新设备名称之后，`Apple`设备会使用`0x4300`来通知附件`Carplay`可用。0x4300会携带参数，携带的参数为如下表：
+ `MessageId` 等于 `0x4300` 来指示 `Carplay` 可用性。在接受`0x4e09`更新设备名称之后，`Apple` 设备会使用 `0x4300` 来通知附件 `Carplay` 可用。`0x4300`会携带参数，携带的参数为如下表：
 
-| **Name**             | **ID** | Type  | Note                                  |
-| -------------------- | ------ | ----- | ------------------------------------- |
-| `WiredAttributes`    | 0      | group | 通过USB显示CarPlay的可用性            |
-| `WirelessAttributes` | 1      | group | 表示在无线网络上提供的CarPlay的可用性 |
+| **Name**             | **ID** | Type    | Note                                    |
+| -------------------- | ------ | ------- | --------------------------------------- |
+| `WiredAttributes`    | `0`    | `group` | 通过`USB`显示`CarPlay`的可用性          |
+| `WirelessAttributes` | `1`    | `group` | 表示在无线网络上提供的`CarPlay`的可用性 |
 
 `WiredAttributes`会携带两个参数
 
@@ -373,7 +374,7 @@
 
 其中`0x0001`表示`Available`的Id，其值为：`01`；表示无线`Carplay`是可用的，接下来的两个字节表示第二个参数的长度，`0016表示``BluetoothTransportIdentifier`的长度，`22`个字节。后续字节`0x0001`表示`BluetoothTransportIdentifier`的`id`,之后的20个字节即为`BluetoothTransportIdentifier`的内容，转换成Ascii对应的值就是无线连接的蓝牙传输标识符。
 
-![](C:\Users\Admin\Desktop\CarPlaySession_CP\IAP2_4300.jpg)
+![](IAP2_4300.jpg)
 
 附件接受到`Apple`设备`Carplay`可用之后，会回复`0x4301`来将热点信息给的苹果设备。
 
@@ -476,8 +477,8 @@
 转换成字符串就是：a9944a04-fa19-4c43-be36-dec4e9d0978f
 ```
 
-![](C:\Users\Admin\Desktop\CarPlaySession_CP\0x4301.jpg)
+![](0x4301.jpg)
 
-### 整个`Carplay`交互流程
+### 整个无线`Carplay`蓝牙部分交互流程
 
-<img src="C:\Users\Admin\Desktop\CarPlaySession_CP\allIAP2.png" style="zoom:100%;" />
+<img src="allIAP2.png" style="zoom:100%;" />
