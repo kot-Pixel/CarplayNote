@@ -1,4 +1,6 @@
-# CarPlay port-7000 control-channel decryptor.
+# CarPlay control-channel decryptor.
+# Decrypts TCP 7000, and keeps every other packet between the same two addresses
+# (event TCP, dataStream TCP, timing/keepalive UDP).
 # ChaCha20-Poly1305 with an 8-byte nonce (64-bit counter), RFC 7539 Poly1305 layout.
 
 import argparse
@@ -174,6 +176,94 @@ def _tcp_payload(packet, link):
     doff = (tcp[12] >> 4) * 4
     payload = tcp[doff:] if doff <= len(tcp) else b""
     return src, src_raw, sport, dst, dst_raw, dport, seq, flags, payload
+
+
+def _packet_hosts(packet, link):
+    """Return (src, dst, proto, sport, dport) for an IP packet, or None."""
+    if link == 113:
+        if len(packet) < 16:
+            return None
+        ethertype = struct.unpack_from("!H", packet, 14)[0]
+        frame = packet[16:]
+    elif link == 1:
+        if len(packet) < 14:
+            return None
+        ethertype = struct.unpack_from("!H", packet, 12)[0]
+        frame = packet[14:]
+    else:
+        return None
+    if ethertype == 0x8100 and len(frame) >= 4:
+        ethertype = struct.unpack_from("!H", frame, 2)[0]
+        frame = frame[4:]
+    if ethertype == 0x0800:
+        if len(frame) < 20:
+            return None
+        src = ".".join(str(b) for b in frame[12:16])
+        dst = ".".join(str(b) for b in frame[16:20])
+        proto = frame[9]
+        ihl = (frame[0] & 0x0F) * 4
+        l4 = frame[ihl:]
+    elif ethertype == 0x86DD:
+        if len(frame) < 40:
+            return None
+        src_raw, dst_raw = frame[8:24], frame[24:40]
+        src = ":".join(f"{struct.unpack_from('!H', src_raw, i)[0]:x}" for i in range(0, 16, 2))
+        dst = ":".join(f"{struct.unpack_from('!H', dst_raw, i)[0]:x}" for i in range(0, 16, 2))
+        proto = frame[6]
+        hdr = 40
+        while proto in (0, 43, 44, 60) and hdr + 8 <= len(frame):
+            nxt = frame[hdr]
+            hdr += 8 if proto == 44 else (frame[hdr + 1] + 1) * 8
+            proto = nxt
+        l4 = frame[hdr:]
+    else:
+        return None
+    sport = dport = None
+    if proto in (6, 17) and len(l4) >= 4:
+        sport, dport = struct.unpack_from("!HH", l4, 0)
+    return src, dst, proto, sport, dport
+
+
+def _as_cooked(packet, link):
+    if link == 113 or link is None:
+        return packet
+    if link == 1 and len(packet) >= 14:
+        ethertype = struct.unpack_from("!H", packet, 12)[0]
+        payload = packet[14:]
+        if ethertype == 0x8100 and len(payload) >= 4:
+            ethertype = struct.unpack_from("!H", payload, 2)[0]
+            payload = payload[4:]
+        return struct.pack("!HHH", 0, 1, 6) + b"\x00" * 8 + struct.pack("!H", ethertype) + payload
+    return packet
+
+
+def related_packets(pcap_path, port=7000):
+    """Packets between the two hosts that spoke on `port`, except that TCP port itself."""
+    blob = Path(pcap_path).read_bytes()
+    stored = []
+    pairs = set()
+    link_type = None
+    for link, ts, packet in iter_pcap_packets(blob):
+        link_type = link
+        stored.append((ts, packet))
+        info = _packet_hosts(packet, link)
+        if not info:
+            continue
+        src, dst, proto, sport, dport = info
+        if proto == 6 and port in (sport, dport):
+            pairs.add(frozenset((src, dst)))
+    kept = []
+    for ts, packet in stored:
+        info = _packet_hosts(packet, link_type)
+        if not info:
+            continue
+        src, dst, proto, sport, dport = info
+        if frozenset((src, dst)) not in pairs:
+            continue
+        if proto == 6 and port in (sport, dport):
+            continue
+        kept.append((ts[0], ts[1], _as_cooked(packet, link_type)))
+    return kept
 
 
 def reassemble(segments, syn_seq):
@@ -499,7 +589,7 @@ def _endpoint_ts(side, which):
     return last or syn or first
 
 
-def write_decrypted_pcap(reports, out_path):
+def write_decrypted_pcap(reports, out_path, extra_packets=None):
     frames = []
     order = 0
     for report in reports:
@@ -555,10 +645,16 @@ def write_decrypted_pcap(reports, out_path):
             else:
                 s_seq = seq
             for piece in data:
-                frames.append((ts_sec, ts_usec, piece))
+                frames.append((ts_sec, ts_usec, order, piece))
+                order += 1
+
+    for ts_sec, ts_usec, packet in extra_packets or []:
+        frames.append((ts_sec, ts_usec, order, packet))
+        order += 1
+    frames.sort()
 
     out = bytearray(struct.pack("<IHHIIII", 0xA1B2C3D4, 2, 4, 0, 0, 65535, 113))
-    for ts_sec, ts_usec, frame in frames:
+    for ts_sec, ts_usec, _order, frame in frames:
         usec = ts_usec
         sec = ts_sec
         if usec >= 1000000:
@@ -626,8 +722,9 @@ class App(tk.Tk):
         self.text.insert("1.0", self.result)
         frames = sum(side["frames"] for report in reports for side in report["sides"])
         out_pcap = decrypted_pcap_path(self.pcap.get())
-        write_decrypted_pcap(reports, out_pcap)
-        self.status.set(f"完成，解开 {frames} 帧，已写入 {out_pcap}")
+        extra = related_packets(self.pcap.get())
+        write_decrypted_pcap(reports, out_pcap, extra)
+        self.status.set(f"完成，解开 {frames} 帧，保留同地址报文 {len(extra)}，已写入 {out_pcap}")
 
     def _save(self):
         if not self.result:
@@ -645,7 +742,7 @@ class App(tk.Tk):
 
 def main():
     here = Path(__file__).resolve().parent
-    parser = argparse.ArgumentParser(description="解密 CarPlay TCP 7000 控制通道")
+    parser = argparse.ArgumentParser(description="解密 CarPlay TCP 7000，并保留同一对地址上的其他报文")
     parser.add_argument("--pcap", default=str(here / "carplay_7000.pcap"))
     parser.add_argument("--keys", default=str(here / "carplay_pair_verify_keys.txt"))
     parser.add_argument("--cli", action="store_true", help="打印到终端，不打开窗口")
@@ -654,9 +751,10 @@ def main():
         reports = decrypt_pcap(args.pcap, args.keys)
         out = format_report(reports)
         out_pcap = decrypted_pcap_path(args.pcap)
-        write_decrypted_pcap(reports, out_pcap)
+        extra = related_packets(args.pcap)
+        write_decrypted_pcap(reports, out_pcap, extra)
         sys.stdout.buffer.write(out.encode("utf-8", errors="replace"))
-        sys.stderr.write(f"\n{out_pcap}\n")
+        sys.stderr.write(f"\n{out_pcap}  保留同地址报文 {len(extra)}\n")
         return
     App(args.pcap, args.keys).mainloop()
 

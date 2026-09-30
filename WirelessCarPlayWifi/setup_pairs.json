@@ -1,0 +1,216 @@
+[
+  {
+    "connection": [
+      "fe80:0:0:0:2cab:f9ff:fe63:c276:7000",
+      "fe80:0:0:0:4d4:e6ca:29b4:e04c:49224"
+    ],
+    "time": "1970-01-01T08:00:00.009",
+    "cseq": 3,
+    "request": "SETUP rtsp://fe80::2cab:f9ff:fe63:c276/9184174890847455056 RTSP/1.0",
+    "requestFrom": "fe80:0:0:0:4d4:e6ca:29b4:e04c:49224 -> fe80:0:0:0:2cab:f9ff:fe63:c276:7000",
+    "requestError": null,
+    "requestPlist": {
+      "name": "胃袋有点大的IPhone",
+      "updateSessionRequest": false,
+      "statsCollectionEnabled": true,
+      "sessionUUID": "7F74BE67-4406-4750-A865-8FA29EDF9C8F",
+      "osName": "iPhone OS",
+      "keepAliveLowPower": true,
+      "features": [
+        "uiContext",
+        "viewAreas",
+        "cornerMasks",
+        "focusTransfer",
+        "h.264Level5.1",
+        "mainBuffered",
+        "altScreen",
+        "enhancedSiri",
+        "hevc",
+        "vehicleStateProtocol",
+        "sessionManagement",
+        "videoPlayback",
+        "logTransfer",
+        "iAPChannel"
+      ],
+      "osBuildVersion": "23F84",
+      "timingPort": 61373,
+      "sourceVersion": "950.7.1",
+      "osVersion": "26.5.2",
+      "sessionCorrelationUUID": "D7F75517-3F90-4D59-89CA-541E7CD3C9EF",
+      "internalBuild": false,
+      "deviceID": "fc:9c:a7:26:26:a4",
+      "diagnosticsAndUsage": true,
+      "model": "iPhone15,4",
+      "macAddress": "D2:8D:20:B9:CC:26"
+    },
+    "reply": "RTSP/1.0 200 OK",
+    "replyTime": "1970-01-01T08:00:00.010",
+    "replyError": null,
+    "replyPlist": {
+      "keepAlivePort": 58919,
+      "eventPort": 53175,
+      "timingPort": 55279,
+      "enabledFeatures": [
+        "altScreen",
+        "enhancedSiri",
+        "uiContext",
+        "viewAreas",
+        "cornerMasks",
+        "hevc",
+        "h.264Level5.1",
+        "mainBuffered",
+        "sessionManagement",
+        "logTransfer",
+        "iAPChannel"
+      ]
+    }
+  },
+  {
+    "connection": [
+      "fe80:0:0:0:2cab:f9ff:fe63:c276:7000",
+      "fe80:0:0:0:4d4:e6ca:29b4:e04c:49224"
+    ],
+    "time": "1970-01-01T08:00:00.015",
+    "cseq": 6,
+    "request": "SETUP rtsp://fe80::2cab:f9ff:fe63:c276/9184174890847455056 RTSP/1.0",
+    "requestFrom": "fe80:0:0:0:4d4:e6ca:29b4:e04c:49224 -> fe80:0:0:0:2cab:f9ff:fe63:c276:7000",
+    "requestError": null,
+    "requestPlist": {
+      "streams": [
+        {
+          "controlType": 2,
+          "channelID": "53:19:59:6C:C8:36-RCS-19",
+          "seed": -8098538626056065163,
+          "clientUUID": "EF9B8C4D-B635-4F19-80A7-B696FE86188A",
+          "type": 130,
+          "wantsDedicatedSocket": true,
+          "sendMessageAsIs": true,
+          "clientTypeUUID": "E9459FD0-BCAD-4C45-820F-1E72447EF2F2",
+          "typeName": "DataStream"
+        }
+      ]
+    },
+    "reply": "RTSP/1.0 200 OK",
+    "replyTime": "1970-01-01T08:00:00.016",
+    "replyError": null,
+    "replyPlist": {
+      "streams": [
+        {
+          "streamID": 1,
+          "type": 130,
+          "dataPort": 51031,
+          "typeName": "DataStream"
+        }
+      ]
+    }
+  },
+  {
+    "connection": [
+      "fe80:0:0:0:2cab:f9ff:fe63:c276:7000",
+      "fe80:0:0:0:4d4:e6ca:29b4:e04c:49224"
+    ],
+    "time": "1970-01-01T08:00:00.027",
+    "cseq": 12,
+    "request": "SETUP rtsp://fe80::2cab:f9ff:fe63:c276/9184174890847455056 RTSP/1.0",
+    "requestFrom": "fe80:0:0:0:4d4:e6ca:29b4:e04c:49224 -> fe80:0:0:0:2cab:f9ff:fe63:c276:7000",
+    "requestError": null,
+    "requestPlist": {
+      "streams": [
+        {
+          "controlType": 2,
+          "channelID": "53:19:59:6C:C8:36-RCS-20",
+          "seed": -6150503703412792589,
+          "clientUUID": "AB6E9FB6-4700-4A6D-9BBF-F675F7F25488",
+          "type": 130,
+          "wantsDedicatedSocket": true,
+          "sendMessageAsIs": true,
+          "clientTypeUUID": "75AD9926-4777-42B2-A7D8-823EBEECF7AA",
+          "typeName": "DataStream"
+        }
+      ]
+    },
+    "reply": "RTSP/1.0 200 OK",
+    "replyTime": "1970-01-01T08:00:00.028",
+    "replyError": null,
+    "replyPlist": {
+      "streams": [
+        {
+          "streamID": 2,
+          "type": 130,
+          "dataPort": 52789,
+          "typeName": "DataStream"
+        }
+      ],
+      "timingPort": 63202
+    }
+  },
+  {
+    "connection": [
+      "fe80:0:0:0:2cab:f9ff:fe63:c276:7000",
+      "fe80:0:0:0:4d4:e6ca:29b4:e04c:49224"
+    ],
+    "time": "1970-01-01T08:00:00.029",
+    "cseq": 13,
+    "request": "SETUP rtsp://fe80::2cab:f9ff:fe63:c276/9184174890847455056 RTSP/1.0",
+    "requestFrom": "fe80:0:0:0:4d4:e6ca:29b4:e04c:49224 -> fe80:0:0:0:2cab:f9ff:fe63:c276:7000",
+    "requestError": null,
+    "requestPlist": {
+      "streams": [
+        {
+          "streamConnectionID": -4137059535543710605,
+          "latencyMs": 75,
+          "type": 111,
+          "uuid": "e5f7a68d-7b0f-4305-984b-b051a776f479",
+          "typeName": "AltScreen"
+        }
+      ]
+    },
+    "reply": "RTSP/1.0 200 OK",
+    "replyTime": "1970-01-01T08:00:00.030",
+    "replyError": null,
+    "replyPlist": {
+      "streams": [
+        {
+          "type": 111,
+          "dataPort": 53697,
+          "typeName": "AltScreen"
+        }
+      ],
+      "timingPort": 51241
+    }
+  },
+  {
+    "connection": [
+      "fe80:0:0:0:2cab:f9ff:fe63:c276:7000",
+      "fe80:0:0:0:4d4:e6ca:29b4:e04c:49224"
+    ],
+    "time": "1970-01-01T08:00:00.031",
+    "cseq": 14,
+    "request": "SETUP rtsp://fe80::2cab:f9ff:fe63:c276/9184174890847455056 RTSP/1.0",
+    "requestFrom": "fe80:0:0:0:4d4:e6ca:29b4:e04c:49224 -> fe80:0:0:0:2cab:f9ff:fe63:c276:7000",
+    "requestError": null,
+    "requestPlist": {
+      "streams": [
+        {
+          "streamConnectionID": 7898554932921584846,
+          "latencyMs": 75,
+          "type": 111,
+          "uuid": "e5f7a68d-7b0f-4305-984b-b051a776f481",
+          "typeName": "AltScreen"
+        }
+      ]
+    },
+    "reply": "RTSP/1.0 200 OK",
+    "replyTime": "1970-01-01T08:00:00.032",
+    "replyError": null,
+    "replyPlist": {
+      "streams": [
+        {
+          "type": 111,
+          "dataPort": 54825,
+          "typeName": "AltScreen"
+        }
+      ]
+    }
+  }
+]
