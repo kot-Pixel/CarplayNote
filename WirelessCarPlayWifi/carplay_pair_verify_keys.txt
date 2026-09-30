@@ -1,0 +1,8 @@
+# phone->car control: control_write
+# car->phone control: control_read
+# phone->car events: events_read
+# car->phone events: events_write
+control_write=c1ffea7fdc959f4eb44c2225b7f321fb5f13ca4838a4b4d63272f383853fd005
+control_read=24d13d4936136e41922f4cd39d76c5a3d7a7f3301c85d8911330e6be71e31478
+events_read=6c1d8dc3854d4b61c7a25c616d2ddd8a3edac056c38affaf57d69fc7c4ed1185
+events_write=72b69fd5ad4b3360edb62da9ef6f0e57a2f5bd9edb23083354c42b6482e539a0

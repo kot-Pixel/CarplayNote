@@ -4,7 +4,15 @@
 
 ### Wireless Carplay Bluetooth交互流程
 
-完整流程可以在carplay iap2 connect 子目录中查询
+完整流程可以在WirelessCarPlayBluetooth 子目录中查询
+
+### Wireless Carplay Wifi交互流程
+
+完整流程可以在WirelessCarPlayWifi 子目录中查询
+
+### AirPlay 协议栈说明
+
+TODO
 
 ### StartCarplaySession 之后流程
 
